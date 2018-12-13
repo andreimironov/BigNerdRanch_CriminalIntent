@@ -11,6 +11,9 @@ import android.support.v4.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -32,6 +35,7 @@ public class CrimeFragment extends Fragment {
     public static final String EXTRA_DATE = "date";
     private static final int REQUEST_TIME = 1;
     private static final String DIALOG_TIME = "DialogTime";
+    public static final String KEY_WAS_DELETED = "was deleted";
     private int mPosition;
     private Crime mCrime;
     private EditText mTitleField;
@@ -51,6 +55,7 @@ public class CrimeFragment extends Fragment {
         UUID crimeId = (UUID) args.getSerializable(ARG_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
         mPosition = args.getInt(ARG_CRIME_POSITION);
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -65,6 +70,25 @@ public class CrimeFragment extends Fragment {
         super.onDetach();
         mOnFirstButtonClickedListener = null;
         mOnLastButtonClickedListener = null;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_crime, menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.delete_crime:
+                CrimeLab.get(getActivity()).deleteCrime(mCrime.getId());
+                returnResult(false, true);
+                getActivity().finish();
+                return true;
+            default:
+                return false;
+        }
     }
 
     @Nullable
@@ -83,7 +107,7 @@ public class CrimeFragment extends Fragment {
             public void onTextChanged(
                 CharSequence s, int start, int before, int count) {
                 mCrime.setTitle(s.toString());
-                returnResult(true);
+                returnResult(true, false);
             }
             @Override
             public void afterTextChanged(Editable s) {
@@ -101,7 +125,7 @@ public class CrimeFragment extends Fragment {
             public void onTextChanged(
                 CharSequence s, int start, int before, int count) {
                 mCrime.setDetails(s.toString());
-                returnResult(true);
+                returnResult(true, false);
             }
             @Override
             public void afterTextChanged(Editable s) {
@@ -155,7 +179,7 @@ public class CrimeFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView,
                                          boolean isChecked) {
                 mCrime.setSolved(isChecked);
-                returnResult(true);
+                returnResult(true, false);
             }
         });
         mFirstButton = v.findViewById(R.id.first_button);
@@ -194,7 +218,7 @@ public class CrimeFragment extends Fragment {
             Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
             mCrime.setDate(date);
             updateDate();
-            returnResult(true);
+            returnResult(true, false);
             return;
         }
         if (requestCode == REQUEST_TIME) {
@@ -206,7 +230,7 @@ public class CrimeFragment extends Fragment {
             calendar.set(Calendar.MINUTE, minute);
             mCrime.setDate(calendar.getTime());
             updateDate();
-            returnResult(true);
+            returnResult(true, false);
             return;
         }
     }
@@ -221,9 +245,10 @@ public class CrimeFragment extends Fragment {
         mTimeButton.setText(hour + ":" + minute);
     }
 
-    private void returnResult(boolean wasChanged) {
+    private void returnResult(boolean wasChanged, boolean wasDeleted) {
         Intent intent = new Intent();
         intent.putExtra(KEY_WAS_CHANGED, wasChanged);
+        intent.putExtra(KEY_WAS_DELETED, wasDeleted);
         intent.putExtra(KEY_POSITION, mPosition);
         getActivity().setResult(Activity.RESULT_OK, intent);
     }

@@ -58,9 +58,14 @@ public class CrimeListFragment extends Fragment implements OnViewClickedListener
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (data != null) {
             boolean wasChanged = data.getBooleanExtra(CrimeFragment.KEY_WAS_CHANGED, false);
+            boolean wasDeleted = data.getBooleanExtra(CrimeFragment.KEY_WAS_DELETED, false);
             if (wasChanged) {
                 int position = data.getIntExtra(CrimeFragment.KEY_POSITION, -1);
                 mCrimeAdapter.notifyItemChanged(position);
+            }
+            if (wasDeleted) {
+                int position = data.getIntExtra(CrimeFragment.KEY_POSITION, -1);
+                mCrimeAdapter.notifyItemRemoved(position);
             }
         }
     }
