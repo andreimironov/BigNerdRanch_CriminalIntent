@@ -18,6 +18,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
@@ -29,11 +30,14 @@ public class CrimeFragment extends Fragment {
     public static final String KEY_POSITION = "position";
     private static final String DIALOG_DATE = "DialogDate";
     public static final String EXTRA_DATE = "date";
+    private static final int REQUEST_TIME = 1;
+    private static final String DIALOG_TIME = "DialogTime";
     private int mPosition;
     private Crime mCrime;
     private EditText mTitleField;
     private EditText mDetailsField;
     private Button mDateButton;
+    private Button mTimeButton;
     private CheckBox mSolvedCheckBox;
     private Button mFirstButton;
     private Button mLastButton;
@@ -104,7 +108,6 @@ public class CrimeFragment extends Fragment {
             }
         });
         mDateButton = v.findViewById(R.id.crime_date);
-        updateDate();
         mDateButton.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
@@ -119,11 +122,32 @@ public class CrimeFragment extends Fragment {
                         else {
                             Intent intent = new Intent(getActivity(), DatePickerActivity.class);
                             intent.putExtra(EXTRA_DATE, mCrime.getDate());
-                            startActivityForResult(intent, CrimeFragment.REQUEST_DATE);
+                            startActivityForResult(intent, REQUEST_DATE);
                         }
                     }
                 }
         );
+        mTimeButton = v.findViewById(R.id.crime_time);
+        mTimeButton.setOnClickListener(
+                new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        boolean isTablet = getResources().getBoolean(R.bool.isTablet);
+                        if (isTablet) {
+                            FragmentManager manager = getFragmentManager();
+                            TimePickerFragment dialogFragment = TimePickerFragment.newInstance(mCrime.getDate());
+                            dialogFragment.setTargetFragment(CrimeFragment.this, REQUEST_TIME);
+                            dialogFragment.show(manager, DIALOG_TIME);
+                        }
+                        else {
+                            Intent intent = new Intent(getActivity(), TimePickerActivity.class);
+                            intent.putExtra(EXTRA_DATE, mCrime.getDate());
+                            startActivityForResult(intent, REQUEST_TIME);
+                        }
+                    }
+                }
+        );
+        updateDate();
         mSolvedCheckBox = v.findViewById(R.id.crime_solved);
         mSolvedCheckBox.setChecked(mCrime.isSolved());
         mSolvedCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -171,11 +195,30 @@ public class CrimeFragment extends Fragment {
             mCrime.setDate(date);
             updateDate();
             returnResult(true);
+            return;
+        }
+        if (requestCode == REQUEST_TIME) {
+            int hour = data.getIntExtra(TimePickerFragment.EXTRA_HOUR, -1);
+            int minute = data.getIntExtra(TimePickerFragment.EXTRA_MINUTE, -1);
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(mCrime.getDate());
+            calendar.set(Calendar.HOUR, hour);
+            calendar.set(Calendar.MINUTE, minute);
+            mCrime.setDate(calendar.getTime());
+            updateDate();
+            returnResult(true);
+            return;
         }
     }
 
     private void updateDate() {
-        mDateButton.setText(mCrime.getDate().toString());
+        Date date = mCrime.getDate();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        int hour = calendar.get(Calendar.HOUR);
+        int minute = calendar.get(Calendar.MINUTE);
+        mDateButton.setText(date.toString());
+        mTimeButton.setText(hour + ":" + minute);
     }
 
     private void returnResult(boolean wasChanged) {
