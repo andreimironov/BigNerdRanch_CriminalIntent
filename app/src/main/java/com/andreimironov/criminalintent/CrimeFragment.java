@@ -28,6 +28,7 @@ public class CrimeFragment extends Fragment {
     public static final String KEY_WAS_CHANGED = "was changed";
     public static final String KEY_POSITION = "position";
     private static final String DIALOG_DATE = "DialogDate";
+    public static final String EXTRA_DATE = "date";
     private int mPosition;
     private Crime mCrime;
     private EditText mTitleField;
@@ -117,7 +118,7 @@ public class CrimeFragment extends Fragment {
                         }
                         else {
                             Intent intent = new Intent(getActivity(), DatePickerActivity.class);
-                            intent.putExtra(DatePickerFragment.EXTRA_DATE, mCrime.getDate());
+                            intent.putExtra(EXTRA_DATE, mCrime.getDate());
                             startActivityForResult(intent, CrimeFragment.REQUEST_DATE);
                         }
                     }

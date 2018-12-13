@@ -9,7 +9,7 @@ public class DatePickerActivity extends SingleFragmentActivity {
     @Override
     protected Fragment createFragment() {
         Intent data = getIntent();
-        Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
+        Date date = (Date) data.getSerializableExtra(CrimeFragment.EXTRA_DATE);
         return DatePickerFragment.newInstance(date);
     }
 }
