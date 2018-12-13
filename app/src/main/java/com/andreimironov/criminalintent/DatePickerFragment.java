@@ -21,7 +21,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class DatePickerFragment extends DialogFragment implements DatePicker.OnDateChangedListener {
+public class DatePickerFragment extends DialogFragment{
     private static final String ARG_DATE = "date";
     public static final String EXTRA_DATE = "intent with date";
 
@@ -41,7 +41,7 @@ public class DatePickerFragment extends DialogFragment implements DatePicker.OnD
         int month = calendar.get(Calendar.MONTH);
         int day = calendar.get(Calendar.DAY_OF_MONTH);
         mDatePicker = view.findViewById(R.id.dialog_date_picker);
-        mDatePicker.init(year, month, day, this);
+        mDatePicker.init(year, month, day, null);
         mButton = view.findViewById(R.id.dialog_button);
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -55,52 +55,6 @@ public class DatePickerFragment extends DialogFragment implements DatePicker.OnD
         });
         return view;
     }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-        Log.d("DialogFragment", "onActivityCreated");
-    }
-
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d("DialogFragment", "onCreate");
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        Log.d("DialogFragment", "onResume");
-    }
-
-    @Override
-    public void onAttach(Context context) {
-        super.onAttach(context);
-        Log.d("DialogFragment", "onAttach");
-    }
-
-    //    @NonNull
-//    @Override
-//    public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-//        Bundle args = getArguments();
-//        Date date = (Date) args.getSerializable(ARG_DATE);
-//        Calendar calendar = Calendar.getInstance();
-//        calendar.setTime(date);
-//        int year = calendar.get(Calendar.YEAR);
-//        int month = calendar.get(Calendar.MONTH);
-//        int day = calendar.get(Calendar.DAY_OF_MONTH);
-//        View view = LayoutInflater.from(getActivity()).inflate(R.layout.dialog_date, null);
-//        mDatePicker = view.findViewById(R.id.dialog_date_picker);
-//        mDatePicker.init(year, month, day, this);
-//        mButton = view.findViewById(R.id.dialog_button);
-//        mButton.setOnClickListener(this);
-//        return new AlertDialog
-//                .Builder(getActivity())
-//                .setView(view)
-//                .create()
-//        ;
-//    }
 
     private void sendResult(int resultCode, Date date) {
         Intent intent = new Intent();
@@ -125,10 +79,5 @@ public class DatePickerFragment extends DialogFragment implements DatePicker.OnD
         DatePickerFragment fragment = new DatePickerFragment();
         fragment.setArguments(args);
         return fragment;
-    }
-
-    @Override
-    public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        Log.d("DatePicker", "" + mDatePicker.getDayOfMonth());
     }
 }
