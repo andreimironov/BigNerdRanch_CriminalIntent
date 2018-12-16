@@ -1,14 +1,15 @@
 package com.andreimironov.criminalintent;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.transition.Visibility;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,9 +17,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 import java.util.UUID;
@@ -47,10 +46,6 @@ public class CrimeListFragment extends Fragment implements OnViewClickedListener
         View view = inflater.inflate(R.layout.fragment_crime_list, container, false);
         mCrimeRecyclerView = view.findViewById(R.id.crime_recycler_view);
         mCrimeRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        CrimeLab crimeLab = CrimeLab.get(getActivity());
-        List<Crime> crimes = crimeLab.getCrimes();
-        mCrimeAdapter = new CrimeListAdapter(crimes, inflater, this);
-        mCrimeRecyclerView.setAdapter(mCrimeAdapter);
         if (savedInstanceState != null) {
             mSubtitleVisible = savedInstanceState.getBoolean(KEY_SUBTITLE_VISIBLE);
         }
@@ -62,9 +57,33 @@ public class CrimeListFragment extends Fragment implements OnViewClickedListener
                 addCrime();
             }
         });
+        updateUI();
+        return view;
+    }
+
+    private void updateUI() {
+        CrimeLab crimeLab = CrimeLab.get(getActivity());
+        List<Crime> crimes = crimeLab.getCrimes();
+        if (mCrimeAdapter == null) {
+            mCrimeAdapter = new CrimeListAdapter(crimes, getContext(), this);
+            mCrimeRecyclerView.setAdapter(mCrimeAdapter);
+        } else {
+            mCrimeAdapter.setCrimes(crimes);
+            mCrimeAdapter.notifyDataSetChanged();
+        }
         updateSubtitle();
         updateNoCrimeInfoViews();
-        return view;
+    }
+
+    private void updateSubtitle() {
+        CrimeLab crimeLab = CrimeLab.get(getActivity());
+        int crimeCount = crimeLab.getCrimes().size();
+        String subtitle = getResources().getQuantityString(R.plurals.subtitle_plural, crimeCount, crimeCount);
+        if (!mSubtitleVisible) {
+            subtitle = null;
+        }
+        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        activity.getSupportActionBar().setSubtitle(subtitle);
     }
 
     private void updateNoCrimeInfoViews() {
@@ -81,20 +100,7 @@ public class CrimeListFragment extends Fragment implements OnViewClickedListener
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (data != null) {
-            boolean wasChanged = data.getBooleanExtra(CrimeFragment.KEY_WAS_CHANGED, false);
-            boolean wasDeleted = data.getBooleanExtra(CrimeFragment.KEY_WAS_DELETED, false);
-            if (wasChanged) {
-                int position = data.getIntExtra(CrimeFragment.KEY_POSITION, -1);
-                mCrimeAdapter.notifyItemChanged(position);
-            }
-            if (wasDeleted) {
-                int position = data.getIntExtra(CrimeFragment.KEY_POSITION, -1);
-                mCrimeAdapter.notifyItemRemoved(position);
-                updateSubtitle();
-                updateNoCrimeInfoViews();
-            }
-        }
+        updateUI();
     }
 
     @Override
@@ -129,9 +135,7 @@ public class CrimeListFragment extends Fragment implements OnViewClickedListener
         Crime crime = new Crime();
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         crimeLab.addCrime(crime);
-        mCrimeAdapter.notifyItemInserted(crimeLab.getCrimes().size() - 1);
-        updateSubtitle();
-        updateNoCrimeInfoViews();
+        updateUI();
         Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getId());
         startActivityForResult(intent, REQUEST_CRIME);
     }
@@ -146,16 +150,5 @@ public class CrimeListFragment extends Fragment implements OnViewClickedListener
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean(KEY_SUBTITLE_VISIBLE, mSubtitleVisible);
-    }
-
-    private void updateSubtitle() {
-        CrimeLab crimeLab = CrimeLab.get(getActivity());
-        int crimeCount = crimeLab.getCrimes().size();
-        String subtitle = getResources().getQuantityString(R.plurals.subtitle_plural, crimeCount, crimeCount);
-        if (!mSubtitleVisible) {
-            subtitle = null;
-        }
-        AppCompatActivity activity = (AppCompatActivity) getActivity();
-        activity.getSupportActionBar().setSubtitle(subtitle);
     }
 }

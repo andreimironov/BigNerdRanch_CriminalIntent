@@ -4,10 +4,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -29,13 +29,10 @@ public class CrimeFragment extends Fragment {
     private static final String ARG_CRIME_ID = "crime_id";
     private static final String ARG_CRIME_POSITION = "crime_position";
     public static final int REQUEST_DATE = 0;
-    public static final String KEY_WAS_CHANGED = "was changed";
-    public static final String KEY_POSITION = "position";
     private static final String DIALOG_DATE = "DialogDate";
     public static final String EXTRA_DATE = "date";
     private static final int REQUEST_TIME = 1;
     private static final String DIALOG_TIME = "DialogTime";
-    public static final String KEY_WAS_DELETED = "was deleted";
     private int mPosition;
     private Crime mCrime;
     private EditText mTitleField;
@@ -56,6 +53,12 @@ public class CrimeFragment extends Fragment {
         mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
         mPosition = args.getInt(ARG_CRIME_POSITION);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
     }
 
     @Override
@@ -83,7 +86,6 @@ public class CrimeFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.delete_crime:
                 CrimeLab.get(getActivity()).deleteCrime(mCrime.getId());
-                returnResult(false, true);
                 getActivity().finish();
                 return true;
             default:
@@ -107,7 +109,6 @@ public class CrimeFragment extends Fragment {
             public void onTextChanged(
                 CharSequence s, int start, int before, int count) {
                 mCrime.setTitle(s.toString());
-                returnResult(true, false);
             }
             @Override
             public void afterTextChanged(Editable s) {
@@ -125,7 +126,6 @@ public class CrimeFragment extends Fragment {
             public void onTextChanged(
                 CharSequence s, int start, int before, int count) {
                 mCrime.setDetails(s.toString());
-                returnResult(true, false);
             }
             @Override
             public void afterTextChanged(Editable s) {
@@ -179,7 +179,6 @@ public class CrimeFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView,
                                          boolean isChecked) {
                 mCrime.setSolved(isChecked);
-                returnResult(true, false);
             }
         });
         mFirstButton = v.findViewById(R.id.first_button);
@@ -218,7 +217,6 @@ public class CrimeFragment extends Fragment {
             Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
             mCrime.setDate(date);
             updateDate();
-            returnResult(true, false);
             return;
         }
         if (requestCode == REQUEST_TIME) {
@@ -230,7 +228,6 @@ public class CrimeFragment extends Fragment {
             calendar.set(Calendar.MINUTE, minute);
             mCrime.setDate(calendar.getTime());
             updateDate();
-            returnResult(true, false);
             return;
         }
     }
@@ -243,14 +240,6 @@ public class CrimeFragment extends Fragment {
         int minute = calendar.get(Calendar.MINUTE);
         mDateButton.setText(date.toString());
         mTimeButton.setText(hour + ":" + minute);
-    }
-
-    private void returnResult(boolean wasChanged, boolean wasDeleted) {
-        Intent intent = new Intent();
-        intent.putExtra(KEY_WAS_CHANGED, wasChanged);
-        intent.putExtra(KEY_WAS_DELETED, wasDeleted);
-        intent.putExtra(KEY_POSITION, mPosition);
-        getActivity().setResult(Activity.RESULT_OK, intent);
     }
 
     public static CrimeFragment newInstance(UUID crimeId, int position) {

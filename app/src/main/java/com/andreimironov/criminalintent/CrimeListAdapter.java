@@ -1,8 +1,9 @@
 package com.andreimironov.criminalintent;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.content.Context;
-import android.support.annotation.NonNull;
-import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,19 +13,19 @@ import java.util.UUID;
 
 public class CrimeListAdapter extends RecyclerView.Adapter<CrimeListHolder> implements OnViewClickedListener {
     private List<Crime> mCrimes;
-    private LayoutInflater mLayoutInflater;
+    private Context mContext;
     private OnViewClickedListener mOnViewClickedListener;
 
-    public CrimeListAdapter(List<Crime> crimes, LayoutInflater inflater, OnViewClickedListener onViewClickedListener) {
+    public CrimeListAdapter(List<Crime> crimes, Context context, OnViewClickedListener onViewClickedListener) {
         mCrimes = crimes;
-        mLayoutInflater = inflater;
+        mContext = context;
         mOnViewClickedListener = onViewClickedListener;
     }
 
     @NonNull
     @Override
     public CrimeListHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = mLayoutInflater.inflate(R.layout.list_item_crime, viewGroup, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.list_item_crime, viewGroup, false);
         return new CrimeListHolder(view, this);
     }
 
@@ -43,4 +44,9 @@ public class CrimeListAdapter extends RecyclerView.Adapter<CrimeListHolder> impl
     public void onViewClicked(UUID id) {
         mOnViewClickedListener.onViewClicked(id);
     }
+
+    public void setCrimes(List<Crime> crimes) {
+        mCrimes = crimes;
+    }
+
 }
