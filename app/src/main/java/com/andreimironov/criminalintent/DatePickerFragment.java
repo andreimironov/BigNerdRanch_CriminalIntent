@@ -16,7 +16,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-public class DatePickerFragment extends DialogFragment{
+public class DatePickerFragment extends DialogFragment {
     private static final String ARG_DATE = "date";
     public static final String EXTRA_DATE = "intent with date";
 
