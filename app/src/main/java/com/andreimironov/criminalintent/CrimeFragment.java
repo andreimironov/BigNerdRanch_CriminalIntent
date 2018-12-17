@@ -32,6 +32,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -77,6 +78,7 @@ public class CrimeFragment extends Fragment {
     private File mPhotoFile;
     private PackageManager mPackageManager;
     private FragmentManager mFragmentManager;
+    private ViewTreeObserver mViewTreeObserver;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -349,12 +351,18 @@ public class CrimeFragment extends Fragment {
     }
 
     private void updatePhotoView() {
-        if (mPhotoFile == null || !mPhotoFile.exists()) {
-            mPhotoView.setImageDrawable(null);
-        } else {
-            Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), getActivity());
-            mPhotoView.setImageBitmap(bitmap);
-        }
+        mPhotoView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                mPhotoView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                if (mPhotoFile == null || !mPhotoFile.exists()) {
+                    mPhotoView.setImageDrawable(null);
+                } else {
+                    Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), mPhotoView.getWidth(), mPhotoView.getHeight());
+                    mPhotoView.setImageBitmap(bitmap);
+                }
+            }
+        });
     }
 
     @Override
