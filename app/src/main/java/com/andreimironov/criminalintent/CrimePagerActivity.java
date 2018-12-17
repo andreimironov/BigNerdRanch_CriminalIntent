@@ -2,12 +2,20 @@ package com.andreimironov.criminalintent;
 
 import android.content.Context;
 import android.content.Intent;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.ContactsContract;
+import android.widget.Toast;
 
 import java.util.List;
 import java.util.UUID;
@@ -51,12 +59,6 @@ public class CrimePagerActivity
         }
     }
 
-    public static Intent newIntent(Context packageContext, UUID crimeId) {
-        Intent intent = new Intent(packageContext, CrimePagerActivity.class);
-        intent.putExtra(EXTRA_CRIME_ID, crimeId);
-        return intent;
-    }
-
     @Override
     public void onFirstButtonClicked() {
         mViewPager.setCurrentItem(0);
@@ -65,5 +67,30 @@ public class CrimePagerActivity
     @Override
     public void onLastButtonClicked() {
         mViewPager.setCurrentItem(mCrimes.size() - 1);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case CrimeFragment.REQUEST_READ_CONTACTS_PERMISSION: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Crime crime = mCrimes.get(mViewPager.getCurrentItem());
+                    CrimeFragment.readSuspectPhone(this, crime);
+                    CrimeFragment.dialSuspect(this, crime);
+                } else {
+                    Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+            default:
+                return;
+        }
+    }
+
+    public static Intent newIntent(Context packageContext, UUID crimeId) {
+        Intent intent = new Intent(packageContext, CrimePagerActivity.class);
+        intent.putExtra(EXTRA_CRIME_ID, crimeId);
+        return intent;
     }
 }

@@ -10,6 +10,34 @@ public class Crime {
     private Date mDate;
     private boolean mSolved;
     private String mSuspect;
+    private int mSuspectId;
+    private boolean mHasPhoneNumber;
+    private String mPhoneNumber;
+
+
+    public int getSuspectId() {
+        return mSuspectId;
+    }
+
+    public void setSuspectId(int suspectId) {
+        mSuspectId = suspectId;
+    }
+
+    public boolean isHasPhoneNumber() {
+        return mHasPhoneNumber;
+    }
+
+    public void setHasPhoneNumber(boolean hasPhoneNumber) {
+        mHasPhoneNumber = hasPhoneNumber;
+    }
+
+    public String getPhoneNumber() {
+        return mPhoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        mPhoneNumber = phoneNumber;
+    }
 
     public String getSuspect() {
         return mSuspect;

@@ -105,6 +105,9 @@ public class CrimeLab {
         values.put(CrimeTable.Cols.TITLE, crime.getTitle());
         values.put(CrimeTable.Cols.UUID, crime.getId().toString());
         values.put(CrimeTable.Cols.SUSPECT, crime.getSuspect());
+        values.put(CrimeTable.Cols.SUSPECT_ID, crime.getSuspectId());
+        values.put(CrimeTable.Cols.HAS_PHONE_NUMBER, crime.isHasPhoneNumber() ? 1 : 0);
+        values.put(CrimeTable.Cols.PHONE_NUMBER, crime.getPhoneNumber());
         return values;
     }
 }

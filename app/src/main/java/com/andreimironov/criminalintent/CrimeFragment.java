@@ -1,5 +1,6 @@
 package com.andreimironov.criminalintent;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -9,7 +10,9 @@ import android.net.Uri;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.ShareCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -27,6 +30,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -41,6 +45,7 @@ public class CrimeFragment extends Fragment {
     private static final int REQUEST_TIME = 1;
     private static final String DIALOG_TIME = "DialogTime";
     private static final int REQUEST_CONTACT = 2;
+    public static final int REQUEST_READ_CONTACTS_PERMISSION = 666;
     private int mPosition;
     private Crime mCrime;
     private EditText mTitleField;
@@ -54,6 +59,7 @@ public class CrimeFragment extends Fragment {
     private OnLastButtonClickedListener mOnLastButtonClickedListener;
     private Button mReportButton;
     private Button mSuspectButton;
+    private Button mDialButton;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -245,7 +251,52 @@ public class CrimeFragment extends Fragment {
         if (packageManager.resolveActivity(pickContact, PackageManager.MATCH_DEFAULT_ONLY) == null) {
             mSuspectButton.setEnabled(false);
         }
+        mDialButton = view.findViewById(R.id.dial_suspect);
+        mDialButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mCrime.isHasPhoneNumber()) {
+                    if (mCrime.getPhoneNumber() == null) {
+                        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+                            readSuspectPhone(getActivity(), mCrime);
+                            dialSuspect(getActivity(), mCrime);
+                        }
+                        else {
+                            ActivityCompat.requestPermissions(
+                                    getActivity(),
+                                    new String[]{ Manifest.permission.READ_CONTACTS },
+                                    REQUEST_READ_CONTACTS_PERMISSION
+                            );
+                        }
+                    }
+                    else {
+                        dialSuspect(getActivity(), mCrime);
+                    }
+                }
+                else {
+                    Toast.makeText(getActivity(), "This contact has no phone number", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
         return view;
+    }
+
+    public static void dialSuspect(Activity activity, Crime crime) {
+        Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse(crime.getPhoneNumber()));
+        activity.startActivity(intent);
+    }
+
+    public static void readSuspectPhone(Activity activity, Crime crime) {
+        Cursor phones = activity.getContentResolver().query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,
+                ContactsContract.CommonDataKinds.Phone.CONTACT_ID +" = "+ crime.getSuspectId(),
+                null,
+                null
+        );
+        phones.moveToFirst();
+        crime.setPhoneNumber(
+            "tel:" + phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+        );
     }
 
     @Override
@@ -273,30 +324,34 @@ public class CrimeFragment extends Fragment {
 
         if (requestCode == REQUEST_CONTACT && data != null) {
             Uri contactUri = data.getData();
-            // Specify which fields you want your query to return values for
-            String[] queryFields = new String[] {
-                    ContactsContract.Contacts.DISPLAY_NAME
+            String[] projection = new String[] {
+                    ContactsContract.Contacts._ID,
+                    ContactsContract.Contacts.DISPLAY_NAME,
+                    ContactsContract.Contacts.HAS_PHONE_NUMBER
             };
-            // Perform your query - the contactUri is like a "where"
-            // clause here
-            Cursor c = getActivity()
+            Cursor contentCursor = getActivity()
                     .getContentResolver()
-                    .query(contactUri, queryFields, null, null, null)
+                    .query(contactUri, projection, null, null, null)
             ;
             try {
-                // Double-check that you actually got results
-                if (c.getCount() == 0) {
-                    return;
+                if (contentCursor.moveToFirst()){
+                    String displayName = contentCursor.getString(
+                            contentCursor.getColumnIndexOrThrow(ContactsContract.Contacts.DISPLAY_NAME)
+                    );
+                    int id = contentCursor.getInt(
+                            contentCursor.getColumnIndexOrThrow(ContactsContract.Contacts._ID)
+                    );
+                    String hasPhoneNumber = contentCursor.getString(
+                            contentCursor.getColumnIndexOrThrow(ContactsContract.Contacts.HAS_PHONE_NUMBER)
+                    );
+                    mCrime.setSuspect(displayName);
+                    mCrime.setSuspectId(id);
+                    mCrime.setHasPhoneNumber(hasPhoneNumber.equalsIgnoreCase("1"));
+                    mSuspectButton.setText(displayName);
                 }
-                // Pull out the first column of the first row of data -
-                // that is your suspect's name
-                c.moveToFirst();
-                String suspect = c.getString(0);
-                mCrime.setSuspect(suspect);
-                mSuspectButton.setText(suspect);
             }
             finally {
-                c.close();
+                contentCursor.close();
             }
         }
     }
