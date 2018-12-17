@@ -9,6 +9,7 @@ import com.andreimironov.criminalintent.databse.CrimeBaseHelper;
 import com.andreimironov.criminalintent.databse.CrimeDbSchema;
 import com.andreimironov.criminalintent.databse.CrimeDbSchema.CrimeTable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -96,6 +97,11 @@ public class CrimeLab {
                 null // orderBy
         );
         return new CrimeCursorWrapper(cursor);
+    }
+
+    public File getPhotoFile(Crime crime) {
+        File filesDir = mContext.getFilesDir();
+        return new File(filesDir, crime.getPhotoFilename());
     }
 
     private static ContentValues getContentValues(Crime crime) {
