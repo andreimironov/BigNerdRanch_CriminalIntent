@@ -36,10 +36,10 @@ public class CrimeListHolder extends RecyclerView.ViewHolder implements View.OnC
 
     @Override
     public void onClick(View v) {
-        mOnViewClickedListener.onViewClicked(mCrime.getId());
+        mOnViewClickedListener.onViewClicked(mCrime.getId(), position);
     }
 }
 
 interface OnViewClickedListener {
-    void onViewClicked(UUID id);
+    void onViewClicked(UUID id, int position);
 }

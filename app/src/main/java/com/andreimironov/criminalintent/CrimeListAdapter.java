@@ -11,15 +11,23 @@ import android.view.ViewGroup;
 import java.util.List;
 import java.util.UUID;
 
-public class CrimeListAdapter extends RecyclerView.Adapter<CrimeListHolder> implements OnViewClickedListener {
+public class CrimeListAdapter extends RecyclerView.Adapter<CrimeListHolder>
+        implements OnViewClickedListener, ItemTouchHelperAdapter {
     private List<Crime> mCrimes;
     private Context mContext;
     private OnViewClickedListener mOnViewClickedListener;
+    private OnCrimeUpdatedListener mOnCrimeUpdatedListener;
 
-    public CrimeListAdapter(List<Crime> crimes, Context context, OnViewClickedListener onViewClickedListener) {
+    public CrimeListAdapter(
+            List<Crime> crimes,
+            Context context,
+            OnViewClickedListener onViewClickedListener,
+            OnCrimeUpdatedListener onCrimeUpdatedListener
+    ) {
         mCrimes = crimes;
         mContext = context;
         mOnViewClickedListener = onViewClickedListener;
+        mOnCrimeUpdatedListener = onCrimeUpdatedListener;
     }
 
     @NonNull
@@ -41,12 +49,19 @@ public class CrimeListAdapter extends RecyclerView.Adapter<CrimeListHolder> impl
     }
 
     @Override
-    public void onViewClicked(UUID id) {
-        mOnViewClickedListener.onViewClicked(id);
+    public void onViewClicked(UUID id, int position) {
+        mOnViewClickedListener.onViewClicked(id, position);
     }
 
     public void setCrimes(List<Crime> crimes) {
         mCrimes = crimes;
     }
 
+    @Override
+    public void onItemDismiss(int position) {
+        Crime crime = mCrimes.get(position);
+        mOnCrimeUpdatedListener.onCrimeUpdated(crime.getId(), position, true);
+        mCrimes.remove(position);
+        notifyItemRemoved(position);
+    }
 }

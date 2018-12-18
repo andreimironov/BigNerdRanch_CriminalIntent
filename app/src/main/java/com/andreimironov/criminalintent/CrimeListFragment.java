@@ -1,12 +1,14 @@
 package com.andreimironov.criminalintent;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,14 +24,20 @@ import android.widget.TextView;
 import java.util.List;
 import java.util.UUID;
 
-public class CrimeListFragment extends Fragment implements OnViewClickedListener {
-    private static final int REQUEST_CRIME = 1;
+public class CrimeListFragment extends Fragment implements OnViewClickedListener, OnCrimeUpdatedListener {
     private static final String KEY_SUBTITLE_VISIBLE = "subtitle visible";
     private RecyclerView mCrimeRecyclerView;
     private CrimeListAdapter mCrimeAdapter;
     private boolean mSubtitleVisible;
     private TextView mNoCrimesLabel;
     private Button mAddCrimeButton;
+    private OnViewClickedListener mOnViewClickedListener;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mOnViewClickedListener = (OnViewClickedListener) context;
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -58,14 +66,68 @@ public class CrimeListFragment extends Fragment implements OnViewClickedListener
             }
         });
         updateUI();
+        ItemTouchHelper.Callback callback = new CrimeItemTouchHelperCallback(mCrimeAdapter);
+        ItemTouchHelper helper = new ItemTouchHelper(callback);
+        helper.attachToRecyclerView(mCrimeRecyclerView);
         return view;
     }
 
-    private void updateUI() {
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateUI();
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.fragment_crime_list, menu);
+        MenuItem subtitleItem = menu.findItem(R.id.show_subtitle);
+        if (mSubtitleVisible) {
+            subtitleItem.setTitle(R.string.hide_subtitle);
+        } else {
+            subtitleItem.setTitle(R.string.show_subtitle);
+        }
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.new_crime:
+                addCrime();
+                return true;
+            case R.id.show_subtitle:
+                mSubtitleVisible = !mSubtitleVisible;
+                getActivity().invalidateOptionsMenu();
+                updateSubtitle();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mOnViewClickedListener = null;
+    }
+
+    @Override
+    public void onViewClicked(UUID id, int position) {
+        mOnViewClickedListener.onViewClicked(id, position);
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean(KEY_SUBTITLE_VISIBLE, mSubtitleVisible);
+    }
+
+    public void updateUI() {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         List<Crime> crimes = crimeLab.getCrimes();
         if (mCrimeAdapter == null) {
-            mCrimeAdapter = new CrimeListAdapter(crimes, getContext(), this);
+            mCrimeAdapter = new CrimeListAdapter(crimes, getContext(), this, this);
             mCrimeRecyclerView.setAdapter(mCrimeAdapter);
         } else {
             mCrimeAdapter.setCrimes(crimes);
@@ -98,57 +160,17 @@ public class CrimeListFragment extends Fragment implements OnViewClickedListener
         }
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        updateUI();
-    }
-
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.fragment_crime_list, menu);
-        MenuItem subtitleItem = menu.findItem(R.id.show_subtitle);
-        if (mSubtitleVisible) {
-            subtitleItem.setTitle(R.string.hide_subtitle);
-        } else {
-            subtitleItem.setTitle(R.string.show_subtitle);
-        }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.new_crime:
-                addCrime();
-                return true;
-            case R.id.show_subtitle:
-                mSubtitleVisible = !mSubtitleVisible;
-                getActivity().invalidateOptionsMenu();
-                updateSubtitle();
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
-    }
-
     private void addCrime() {
         Crime crime = new Crime();
-        CrimeLab crimeLab = CrimeLab.get(getActivity());
-        crimeLab.addCrime(crime);
+        CrimeLab.get(getActivity()).addCrime(crime);
         updateUI();
-        Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getId());
-        startActivityForResult(intent, REQUEST_CRIME);
+        mOnViewClickedListener.onViewClicked(crime.getId(), mCrimeAdapter.getItemCount() - 1);
     }
 
     @Override
-    public void onViewClicked(UUID id) {
-        Intent intent = CrimePagerActivity.newIntent(getActivity(), id);
-        startActivityForResult(intent, REQUEST_CRIME);
-    }
-
-    @Override
-    public void onSaveInstanceState(@NonNull Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putBoolean(KEY_SUBTITLE_VISIBLE, mSubtitleVisible);
+    public void onCrimeUpdated(UUID id, int position, boolean wasDeleted) {
+        if (wasDeleted) {
+            CrimeLab.get(getActivity()).deleteCrime(id);
+        }
     }
 }

@@ -68,8 +68,6 @@ public class CrimeFragment extends Fragment {
     private CheckBox mSolvedCheckBox;
     private Button mFirstButton;
     private Button mLastButton;
-    private OnFirstButtonClickedListener mOnFirstButtonClickedListener;
-    private OnLastButtonClickedListener mOnLastButtonClickedListener;
     private Button mReportButton;
     private Button mSuspectButton;
     private Button mDialButton;
@@ -78,7 +76,9 @@ public class CrimeFragment extends Fragment {
     private File mPhotoFile;
     private PackageManager mPackageManager;
     private FragmentManager mFragmentManager;
-    private ViewTreeObserver mViewTreeObserver;
+    private OnFirstButtonClickedListener mOnFirstButtonClickedListener;
+    private OnLastButtonClickedListener mOnLastButtonClickedListener;
+    private OnCrimeUpdatedListener mOnCrimeUpdatedListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -101,6 +101,7 @@ public class CrimeFragment extends Fragment {
         super.onAttach(context);
         mOnFirstButtonClickedListener = (OnFirstButtonClickedListener) context;
         mOnLastButtonClickedListener = (OnLastButtonClickedListener) context;
+        mOnCrimeUpdatedListener = (OnCrimeUpdatedListener) context;
     }
 
     @Override
@@ -108,6 +109,7 @@ public class CrimeFragment extends Fragment {
         super.onDetach();
         mOnFirstButtonClickedListener = null;
         mOnLastButtonClickedListener = null;
+        mOnCrimeUpdatedListener = null;
     }
 
     @Override
@@ -121,7 +123,7 @@ public class CrimeFragment extends Fragment {
         switch (item.getItemId()) {
             case R.id.delete_crime:
                 CrimeLab.get(getActivity()).deleteCrime(mCrime.getId());
-                getActivity().finish();
+                mOnCrimeUpdatedListener.onCrimeUpdated(mCrime.getId(), mPosition, true);
                 return true;
             default:
                 return false;
@@ -145,6 +147,8 @@ public class CrimeFragment extends Fragment {
             public void onTextChanged(
                 CharSequence s, int start, int before, int count) {
                 mCrime.setTitle(s.toString());
+                CrimeLab.get(getActivity()).updateCrime(mCrime);
+                mOnCrimeUpdatedListener.onCrimeUpdated(mCrime.getId(), mPosition, false);
             }
             @Override
             public void afterTextChanged(Editable s) {
@@ -162,6 +166,8 @@ public class CrimeFragment extends Fragment {
             public void onTextChanged(
                 CharSequence s, int start, int before, int count) {
                 mCrime.setDetails(s.toString());
+                CrimeLab.get(getActivity()).updateCrime(mCrime);
+                mOnCrimeUpdatedListener.onCrimeUpdated(mCrime.getId(), mPosition, false);
             }
             @Override
             public void afterTextChanged(Editable s) {
@@ -373,6 +379,8 @@ public class CrimeFragment extends Fragment {
         if (requestCode == REQUEST_DATE) {
             Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
             mCrime.setDate(date);
+            CrimeLab.get(getActivity()).updateCrime(mCrime);
+            mOnCrimeUpdatedListener.onCrimeUpdated(mCrime.getId(), mPosition, false);
             updateDate();
             return;
         }
@@ -384,6 +392,8 @@ public class CrimeFragment extends Fragment {
             calendar.set(Calendar.HOUR, hour);
             calendar.set(Calendar.MINUTE, minute);
             mCrime.setDate(calendar.getTime());
+            CrimeLab.get(getActivity()).updateCrime(mCrime);
+            mOnCrimeUpdatedListener.onCrimeUpdated(mCrime.getId(), mPosition, false);
             updateDate();
             return;
         }

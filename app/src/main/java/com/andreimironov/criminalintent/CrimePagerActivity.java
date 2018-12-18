@@ -24,9 +24,11 @@ public class CrimePagerActivity
         extends AppCompatActivity
         implements
             OnFirstButtonClickedListener,
-            OnLastButtonClickedListener
+            OnLastButtonClickedListener,
+            OnCrimeUpdatedListener
 {
-    private static final String EXTRA_CRIME_ID = "com.bignerdranch.android.criminalintent.crime_id";
+    private static final String EXTRA_CRIME_ID = "crime_id";
+    private static final String EXTRA_CRIME_POSITION = "crime_position";
 
     private ViewPager mViewPager;
     private List<Crime> mCrimes;
@@ -51,12 +53,8 @@ public class CrimePagerActivity
             }
         });
         UUID crimeId = (UUID) getIntent().getSerializableExtra(EXTRA_CRIME_ID);
-        for (int i = 0; i < mCrimes.size(); i++) {
-            if (mCrimes.get(i).getId().equals(crimeId)) {
-                mViewPager.setCurrentItem(i);
-                break;
-            }
-        }
+        int position = getIntent().getIntExtra(EXTRA_CRIME_POSITION, -1);
+        mViewPager.setCurrentItem(position);
     }
 
     @Override
@@ -88,9 +86,20 @@ public class CrimePagerActivity
         }
     }
 
-    public static Intent newIntent(Context packageContext, UUID crimeId) {
+    public static Intent newIntent(Context packageContext, UUID crimeId, int position) {
         Intent intent = new Intent(packageContext, CrimePagerActivity.class);
         intent.putExtra(EXTRA_CRIME_ID, crimeId);
+        intent.putExtra(EXTRA_CRIME_POSITION, position);
         return intent;
+    }
+
+    @Override
+    public void onCrimeUpdated(UUID id, int position, boolean wasDeleted) {
+        if (wasDeleted) {
+            finish();
+        }
+        else {
+
+        }
     }
 }
