@@ -2,7 +2,6 @@ package com.andreimironov.criminalintent;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,7 +16,6 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.ShareCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
-import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 
@@ -448,7 +446,11 @@ public class CrimeFragment extends Fragment {
         calendar.setTime(date);
         int hour = calendar.get(Calendar.HOUR);
         int minute = calendar.get(Calendar.MINUTE);
-        mDateButton.setText(date.toString());
+        String dateLocale = java.text.DateFormat
+                .getDateTimeInstance(java.text.DateFormat.LONG, java.text.DateFormat.LONG)
+                .format(date)
+        ;
+        mDateButton.setText(dateLocale);
         mTimeButton.setText(hour + ":" + minute);
     }
 
