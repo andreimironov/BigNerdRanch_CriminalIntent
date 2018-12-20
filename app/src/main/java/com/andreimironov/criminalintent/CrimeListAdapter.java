@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import java.text.DateFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +42,9 @@ public class CrimeListAdapter extends RecyclerView.Adapter<CrimeListHolder>
     public void onBindViewHolder(@NonNull CrimeListHolder holder, int position) {
         Crime crime = mCrimes.get(position);
         holder.bind(crime, position);
+        holder.itemView.setContentDescription(
+                "The crime " + crime.getTitle() + " dated " + java.text.DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(crime.getDate()) + " has status " + (crime.isSolved() ? "solved" : "not solved")
+        );
     }
 
     @Override

@@ -28,4 +28,7 @@
     <string name="dial_suspect_button_title">Marque sospechoso</string>
     <string name="first_button_label">Primer</string>
     <string name="last_button_label">Ultimo</string>
+    <string name="crime_photo_button_description">Tomar foto de la escena del crimen</string>
+    <string name="crime_photo_no_image_description">Foto de la escena del crimen (no establecida)</string>
+    <string name="crime_photo_image_description">Escena del crimen foto (establecida)</string>
 </resources>

@@ -27,4 +27,7 @@
     <string name="dial_suspect_button_title">Dial suspect</string>
     <string name="first_button_label">First</string>
     <string name="last_button_label">Last</string>
+    <string name="crime_photo_button_description">Take photo of crime scene</string>
+    <string name="crime_photo_no_image_description">Crime scene photo (not set)</string>
+    <string name="crime_photo_image_description">Crime scene photo (set)</string>
 </resources>
