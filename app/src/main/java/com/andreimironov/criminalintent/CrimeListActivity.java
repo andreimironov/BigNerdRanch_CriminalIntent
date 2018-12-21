@@ -1,6 +1,7 @@
 package com.andreimironov.criminalintent;
 
 import android.content.Intent;
+import android.view.View;
 
 import java.util.List;
 import java.util.UUID;
@@ -12,9 +13,20 @@ public class CrimeListActivity extends SingleFragmentActivity
             OnViewClickedListener,
             OnFirstButtonClickedListener,
             OnLastButtonClickedListener,
-            OnCrimeUpdatedListener
+            OnCrimeUpdatedListener,
+            OnPhotoUpdatedListener
 {
     private static final int REQUEST_CRIME = 1;
+    private View updatedPhotoView;
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (updatedPhotoView != null) {
+            updatedPhotoView.announceForAccessibility(getString(R.string.photo_is_updated_message));
+            updatedPhotoView = null;
+        }
+    }
 
     @Override
     protected Fragment createFragment() {
@@ -72,5 +84,10 @@ public class CrimeListActivity extends SingleFragmentActivity
     public void onCrimeUpdated(UUID id, int position, boolean wasDeleted) {
         CrimeListFragment fragment = (CrimeListFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
         fragment.updateUI();
+    }
+
+    @Override
+    public void onPhotoUpdated(View view) {
+        updatedPhotoView = view;
     }
 }

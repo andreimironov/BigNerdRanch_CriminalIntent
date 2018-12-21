@@ -77,6 +77,7 @@ public class CrimeFragment extends Fragment {
     private OnFirstButtonClickedListener mOnFirstButtonClickedListener;
     private OnLastButtonClickedListener mOnLastButtonClickedListener;
     private OnCrimeUpdatedListener mOnCrimeUpdatedListener;
+    private OnPhotoUpdatedListener mOnPhotoUpdatedListener;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -100,6 +101,7 @@ public class CrimeFragment extends Fragment {
         mOnFirstButtonClickedListener = (OnFirstButtonClickedListener) context;
         mOnLastButtonClickedListener = (OnLastButtonClickedListener) context;
         mOnCrimeUpdatedListener = (OnCrimeUpdatedListener) context;
+        mOnPhotoUpdatedListener = (OnPhotoUpdatedListener) context;
     }
 
     @Override
@@ -108,6 +110,7 @@ public class CrimeFragment extends Fragment {
         mOnFirstButtonClickedListener = null;
         mOnLastButtonClickedListener = null;
         mOnCrimeUpdatedListener = null;
+        mOnPhotoUpdatedListener = null;
     }
 
     @Override
@@ -437,6 +440,7 @@ public class CrimeFragment extends Fragment {
                     mPhotoFile
             );
             getActivity().revokeUriPermission(uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            mOnPhotoUpdatedListener.onPhotoUpdated(mPhotoView);
             updatePhotoView();
         }
 
@@ -493,4 +497,8 @@ interface OnFirstButtonClickedListener {
 
 interface OnLastButtonClickedListener {
     void onLastButtonClicked();
+}
+
+interface OnPhotoUpdatedListener {
+    void onPhotoUpdated(View view);
 }

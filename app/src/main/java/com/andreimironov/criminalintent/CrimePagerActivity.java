@@ -15,6 +15,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.view.View;
 import android.widget.Toast;
 
 import java.util.List;
@@ -25,13 +26,15 @@ public class CrimePagerActivity
         implements
             OnFirstButtonClickedListener,
             OnLastButtonClickedListener,
-            OnCrimeUpdatedListener
+            OnCrimeUpdatedListener,
+            OnPhotoUpdatedListener
 {
     private static final String EXTRA_CRIME_ID = "crime_id";
     private static final String EXTRA_CRIME_POSITION = "crime_position";
 
     private ViewPager mViewPager;
     private List<Crime> mCrimes;
+    private View updatedPhotoView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +58,15 @@ public class CrimePagerActivity
         UUID crimeId = (UUID) getIntent().getSerializableExtra(EXTRA_CRIME_ID);
         int position = getIntent().getIntExtra(EXTRA_CRIME_POSITION, -1);
         mViewPager.setCurrentItem(position);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (updatedPhotoView != null) {
+            updatedPhotoView.announceForAccessibility(getString(R.string.photo_is_updated_message));
+            updatedPhotoView = null;
+        }
     }
 
     @Override
@@ -101,5 +113,10 @@ public class CrimePagerActivity
         else {
 
         }
+    }
+
+    @Override
+    public void onPhotoUpdated(View view) {
+        updatedPhotoView = view;
     }
 }
